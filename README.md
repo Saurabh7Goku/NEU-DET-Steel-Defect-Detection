@@ -8,6 +8,7 @@ sdk_version: 5.35.0
 app_file: space.py
 pinned: false
 license: mit
+hardware: cpu-basic
 ---
 
 # NEU-DET Steel Surface Defect Detection
