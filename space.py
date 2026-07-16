@@ -11,51 +11,67 @@ os.environ["GRADIO_SSR_MODE"] = "False"
 
 import gradio as gr
 import spaces
-from app import app as fastapi_app
+import numpy as np
+import cv2
+from PIL import Image
+
+from src.data.constants import (
+    DEFECT_LABELS,
+    IMAGE_SIZE,
+    MEAN,
+    NUM_CLASSES,
+    ONNX_DIR,
+    STD,
+)
+from app import _ensure_model, _get_session, _preprocess, COLORS
 
 # ---------------------------------------------------------------------------
-# A lightweight Gradio interface for uploading / previewing predictions.
-# HF Spaces needs a Gradio `demo` object to mount on the free tier.
+# GPU-decorated predict function — must be at module level for HF scanner
 # ---------------------------------------------------------------------------
 @spaces.GPU
 def _predict_ui(file):
-    """Minimal upload → call the same /api/predict logic."""
+    """Minimal upload → run ONNX inference directly."""
     if file is None:
         return None, "Please upload an image.", None
 
-    import io
-    from PIL import Image
-
     img = Image.open(file).convert("RGB")
+    img_np = np.array(img)
 
-    # Reuse the FastAPI app's internal logic via TestClient
-    from fastapi.testclient import TestClient
-    client = TestClient(fastapi_app)
+    blob = _preprocess(img_np)
+    session = _get_session()
+    input_name = session.get_inputs()[0].name
+    output = session.run(None, {input_name: blob})[0]
 
-    buf = io.BytesIO()
-    img.save(buf, format="JPEG")
-    buf.seek(0)
+    probs = 1.0 / (1.0 + np.exp(-output[0]))
+    confidences = {
+        DEFECT_LABELS[i]: float(probs[i].mean()) for i in range(NUM_CLASSES)
+    }
 
-    resp = client.post("/api/predict", files={"file": ("image.jpg", buf, "image/jpeg")})
-    if resp.status_code != 200:
-        return None, f"Error: {resp.json().get('detail', 'unknown')}", None
+    resized = cv2.resize(img_np, (IMAGE_SIZE, IMAGE_SIZE))
+    top_idx = int(probs.mean(axis=(1, 2)).argmax())
+    mask = probs[top_idx] > 0.5
+    overlay = resized.copy()
+    color = COLORS[top_idx][::-1]
+    overlay[mask] = (overlay[mask] * 0.5 + color * 0.5).astype(np.uint8)
 
-    data = resp.json()
-    ranked = "\n".join(
-        f"{p['class']}: {p['confidence']:.2%}" for p in data["predictions"]
-    )
-    overlay_url = data["overlay"]  # data:image/png;base64,...
+    overlay_bgr = cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR)
+    import base64, io
+    _, buf = cv2.imencode(".png", overlay_bgr)
+    overlay_b64 = base64.b64encode(buf).decode()
 
-    # Gradio can display the base64 image directly
-    overlay_html = f'<img src="{overlay_url}" style="max-width:100%;border-radius:12px"/>'
-    return overlay_html, ranked, data["predictions"]
+    ranked = sorted(confidences.items(), key=lambda x: x[1], reverse=True)
+    ranked_text = "\n".join(f"{cls}: {conf:.2%}" for cls, conf in ranked)
+    overlay_html = f'<img src="data:image/png;base64,{overlay_b64}" style="max-width:100%;border-radius:12px"/>'
+    predictions = [{"class": cls, "confidence": round(conf, 4)} for cls, conf in ranked]
+
+    return overlay_html, ranked_text, predictions
 
 
 # Build the Gradio Blocks UI
 with gr.Blocks(title="NEU-DET Steel Defect Detection", theme=gr.themes.Soft()) as demo:
     gr.Markdown(
         """
-    # 🔩 NEU-DET — Steel Surface Defect Detection
+    # NEU-DET — Steel Surface Defect Detection
     Upload a steel surface image to detect 6 types of defects.
     """
     )
@@ -87,13 +103,5 @@ with gr.Blocks(title="NEU-DET Steel Defect Detection", theme=gr.themes.Soft()) a
     """
     )
 
-# ---------------------------------------------------------------------------
-# Mount Gradio on the FastAPI app so /api/* routes stay accessible.
-# HF Spaces will call `demo.launch()` automatically.
-# ---------------------------------------------------------------------------
-app = gr.mount_gradio_app(fastapi_app, demo, path="/")
-
-# For direct `python space.py` debugging
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("space:app", host="0.0.0.0", port=7860)
+    demo.launch()
