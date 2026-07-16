@@ -4,10 +4,19 @@
 Mounts the Gradio UI onto the FastAPI app so both the Gradio demo
 and the /api/* routes (used by the Vercel frontend) are accessible.
 """
-# 1. This import MUST sit rawly at the absolute top for the ZeroGPU parser to find it
+# 1. The raw import must sit at the absolute top
 import spaces
 import os
 os.environ["GRADIO_SSR_MODE"] = "False"
+
+# 2. Add an explicit probe function. The infrastructure scanner intercepts
+# this call during startup to properly register your ZeroGPU environment token.
+@spaces.GPU(duration=10)
+def _zerogpu_startup_probe():
+    return "ok"
+
+# Execute the probe immediately at code runtime
+_zerogpu_startup_probe()
 
 import gradio as gr
 import numpy as np
@@ -18,7 +27,7 @@ from app import app as fastapi_app, run_prediction, _ensure_model, _get_session
 _ensure_model()
 _get_session()
 
-# 2. Directly decorate the execution entry point 
+# 3. Keep the UI function decorated so user-submitted actions pull from the ZeroGPU queue
 @spaces.GPU
 def predict_ui(image):
     if image is None:
