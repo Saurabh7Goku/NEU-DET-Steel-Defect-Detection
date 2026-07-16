@@ -1,0 +1,16 @@
+name: Wake Up Hugging Face Space
+
+on:
+  schedule:
+    # Daily at 7:00 AM IST (1:30 UTC)
+    - cron: "30 1 * * *"
+  workflow_dispatch:  # allow manual trigger too
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping HF Space health endpoint
+        run: |
+          curl -s -o /dev/null -w "HTTP %{http_code}\n" \
+            "${{ secrets.HF_SPACE_URL }}/api/model-info" || true

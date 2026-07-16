@@ -1,0 +1,11 @@
+# Inference-only requirements for Hugging Face Spaces deployment
+opencv-python-headless>=4.5.0
+numpy>=1.21.0
+Pillow>=8.0.0
+onnxruntime>=1.15.0
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+python-multipart>=0.0.6
+gradio>=5.0.0,<6
+httpx>=0.24.0
+huggingface_hub>=0.24.0

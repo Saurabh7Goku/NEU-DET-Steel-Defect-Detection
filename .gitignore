@@ -1,0 +1,45 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+.venv/
+*.egg
+
+# --- Node / Frontend ---
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# --- IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Large data: keep only validation sample images ---
+data/IMAGES/
+data/ANNOTATIONS/
+data/validation_annotations/
+
+# --- Large model weights (NOT needed for inference) ---
+checkpoints/
+
+# --- ONNX model is downloaded at runtime from Hugging Face Model Hub ---
+# Keep the onnx/ directory for the download to land in, but ignore the binary
+onnx/*.onnx
+onnx/*.onnx.data
+
+# --- Kaggle dataset ---
+kaggle-steel-defect-detection/
+
+# --- Jupyter checkpoints ---
+notebooks/.ipynb_checkpoints/
+
+# --- Environment ---
+.env
+.env.local
