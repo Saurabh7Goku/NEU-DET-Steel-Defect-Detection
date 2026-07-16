@@ -12,12 +12,23 @@ import gradio as gr
 import numpy as np
 from PIL import Image
 
+# Graceful import fallback for Hugging Face Spaces vs Local Environments
+try:
+    import spaces
+except ImportError:
+    class spaces:
+        @staticmethod
+        def GPU(func):
+            return func
+
 from app import app as fastapi_app, run_prediction, _ensure_model, _get_session
 
 _ensure_model()
 _get_session()
 
 
+# The decorator MUST live on a function imported or declared right here in the entry point
+@spaces.GPU
 def predict_ui(image):
     if image is None:
         return "<p>Please upload an image.</p>", []
