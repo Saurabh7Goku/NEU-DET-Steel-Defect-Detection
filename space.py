@@ -94,4 +94,4 @@ app = gr.mount_gradio_app(fastapi_app, demo, path="/")
 # For direct `python space.py` debugging
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("space:app", host="0.0.0.0", port=7860, reload=True)
+    uvicorn.run("space:app", host="0.0.0.0", port=7860)
