@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 """Entry point for Hugging Face Spaces (Gradio SDK).
 
-This wraps the existing FastAPI app with a minimal Gradio UI so the
-Space stays warm on the free tier. All `/api/*` routes from `app.py`
-continue to work normally — the Vercel frontend talks to them directly.
+Gradio UI that calls the same shared inference function as the FastAPI backend.
+HF Spaces manages the server lifecycle — no demo.launch() or uvicorn needed.
 """
 
 import os
@@ -12,62 +11,38 @@ os.environ["GRADIO_SSR_MODE"] = "False"
 import gradio as gr
 import spaces
 import numpy as np
-import cv2
 from PIL import Image
 
-from src.data.constants import (
-    DEFECT_LABELS,
-    IMAGE_SIZE,
-    MEAN,
-    NUM_CLASSES,
-    ONNX_DIR,
-    STD,
-)
-from app import _ensure_model, _get_session, _preprocess, COLORS
+from app import run_prediction, _ensure_model, _get_session
 
-# ---------------------------------------------------------------------------
-# GPU-decorated predict function — must be at module level for HF scanner
-# ---------------------------------------------------------------------------
+# Ensure ONNX model is loaded at import time
+_ensure_model()
+_get_session()
+
+
 @spaces.GPU
-def _predict_ui(file):
-    """Minimal upload → run ONNX inference directly."""
+def predict_ui(file):
+    """Run inference and return overlay HTML + table rows."""
     if file is None:
-        return None, "Please upload an image.", None
+        return None, [["—", 0.0]]
 
     img = Image.open(file).convert("RGB")
     img_np = np.array(img)
 
-    blob = _preprocess(img_np)
-    session = _get_session()
-    input_name = session.get_inputs()[0].name
-    output = session.run(None, {input_name: blob})[0]
+    result = run_prediction(img_np)
 
-    probs = 1.0 / (1.0 + np.exp(-output[0]))
-    confidences = {
-        DEFECT_LABELS[i]: float(probs[i].mean()) for i in range(NUM_CLASSES)
-    }
+    overlay_html = (
+        f'<img src="{result["overlay"]}" '
+        f'style="max-width:100%;border-radius:12px"/>'
+    )
+    table = [[p["class"], p["confidence"]] for p in result["predictions"]]
 
-    resized = cv2.resize(img_np, (IMAGE_SIZE, IMAGE_SIZE))
-    top_idx = int(probs.mean(axis=(1, 2)).argmax())
-    mask = probs[top_idx] > 0.5
-    overlay = resized.copy()
-    color = COLORS[top_idx][::-1]
-    overlay[mask] = (overlay[mask] * 0.5 + color * 0.5).astype(np.uint8)
-
-    overlay_bgr = cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR)
-    import base64, io
-    _, buf = cv2.imencode(".png", overlay_bgr)
-    overlay_b64 = base64.b64encode(buf).decode()
-
-    ranked = sorted(confidences.items(), key=lambda x: x[1], reverse=True)
-    ranked_text = "\n".join(f"{cls}: {conf:.2%}" for cls, conf in ranked)
-    overlay_html = f'<img src="data:image/png;base64,{overlay_b64}" style="max-width:100%;border-radius:12px"/>'
-    predictions = [{"class": cls, "confidence": round(conf, 4)} for cls, conf in ranked]
-
-    return overlay_html, ranked_text, predictions
+    return overlay_html, table
 
 
-# Build the Gradio Blocks UI
+# ---------------------------------------------------------------------------
+# Gradio Blocks UI
+# ---------------------------------------------------------------------------
 with gr.Blocks(title="NEU-DET Steel Defect Detection", theme=gr.themes.Soft()) as demo:
     gr.Markdown(
         """
@@ -76,9 +51,14 @@ with gr.Blocks(title="NEU-DET Steel Defect Detection", theme=gr.themes.Soft()) a
     """
     )
 
+    status = gr.Textbox(visible=False)
+
     with gr.Row():
         with gr.Column(scale=1):
-            file_input = gr.File(label="Upload Image", file_types=[".jpg", ".jpeg", ".png"])
+            file_input = gr.File(
+                label="Upload Image",
+                file_types=[".jpg", ".jpeg", ".png"],
+            )
             predict_btn = gr.Button("Detect Defects", variant="primary")
 
         with gr.Column(scale=1):
@@ -91,9 +71,9 @@ with gr.Blocks(title="NEU-DET Steel Defect Detection", theme=gr.themes.Soft()) a
             )
 
     predict_btn.click(
-        fn=_predict_ui,
+        fn=predict_ui,
         inputs=file_input,
-        outputs=[overlay_output, gr.Textbox(visible=False), predictions_output],
+        outputs=[overlay_output, predictions_output],
     )
 
     gr.Markdown(
@@ -103,5 +83,5 @@ with gr.Blocks(title="NEU-DET Steel Defect Detection", theme=gr.themes.Soft()) a
     """
     )
 
-if __name__ == "__main__":
-    demo.launch()
+# HF Spaces mounts the Gradio app via the `demo` object at module level.
+# Do NOT call demo.launch() or uvicorn.run() here.

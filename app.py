@@ -135,6 +135,41 @@ COLORS = np.array(
 
 
 # ---------------------------------------------------------------------------
+# Shared inference (used by both FastAPI and Gradio)
+# ---------------------------------------------------------------------------
+def run_prediction(img_rgb: np.ndarray) -> dict:
+    """Run ONNX inference on an RGB image. Returns predictions + base64 overlay."""
+    blob = _preprocess(img_rgb)
+    input_name = _get_session().get_inputs()[0].name
+    output = _get_session().run(None, {input_name: blob})[0]
+
+    probs = 1.0 / (1.0 + np.exp(-output[0]))
+    confidences = {
+        DEFECT_LABELS[i]: float(probs[i].mean()) for i in range(NUM_CLASSES)
+    }
+
+    resized = cv2.resize(img_rgb, (IMAGE_SIZE, IMAGE_SIZE))
+    top_idx = int(probs.mean(axis=(1, 2)).argmax())
+    mask = probs[top_idx] > 0.5
+    overlay = resized.copy()
+    color = COLORS[top_idx][::-1]
+    overlay[mask] = (overlay[mask] * 0.5 + color * 0.5).astype(np.uint8)
+
+    overlay_bgr = cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR)
+    _, buf = cv2.imencode(".png", overlay_bgr)
+    overlay_b64 = base64.b64encode(buf).decode()
+
+    ranked = sorted(confidences.items(), key=lambda x: x[1], reverse=True)
+
+    return {
+        "predictions": [
+            {"class": cls, "confidence": round(conf, 4)} for cls, conf in ranked
+        ],
+        "overlay": f"data:image/png;base64,{overlay_b64}",
+    }
+
+
+# ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
 @app.get("/api/model-info")
@@ -175,40 +210,7 @@ async def predict(file: UploadFile = File(...)):
     raw = await file.read()
     img = Image.open(io.BytesIO(raw)).convert("RGB")
     img_np = np.array(img)
-
-    # Preprocess & run inference
-    blob = _preprocess(img_np)
-    input_name = _get_session().get_inputs()[0].name
-    output = _get_session().run(None, {input_name: blob})[0]  # (1, 6, 128, 128)
-
-    # Per-class mean confidence (after sigmoid)
-    probs = 1.0 / (1.0 + np.exp(-output[0]))  # (6, 128, 128)
-    confidences = {
-        DEFECT_LABELS[i]: float(probs[i].mean()) for i in range(NUM_CLASSES)
-    }
-
-    # Build overlay on the 128×128 image
-    resized = cv2.resize(img_np, (IMAGE_SIZE, IMAGE_SIZE))
-    top_idx = int(probs.mean(axis=(1, 2)).argmax())
-    mask = probs[top_idx] > 0.5  # threshold
-    overlay = resized.copy()
-    color = COLORS[top_idx][::-1]  # BGR→RGB
-    overlay[mask] = (overlay[mask] * 0.5 + color * 0.5).astype(np.uint8)
-
-    # Encode overlay to base64 PNG
-    overlay_bgr = cv2.cvtColor(overlay, cv2.COLOR_RGB2BGR)
-    _, buf = cv2.imencode(".png", overlay_bgr)
-    overlay_b64 = base64.b64encode(buf).decode()
-
-    # Sort by confidence descending
-    ranked = sorted(confidences.items(), key=lambda x: x[1], reverse=True)
-
-    return {
-        "predictions": [
-            {"class": cls, "confidence": round(conf, 4)} for cls, conf in ranked
-        ],
-        "overlay": f"data:image/png;base64,{overlay_b64}",
-    }
+    return run_prediction(img_np)
 
 
 # ---------------------------------------------------------------------------
