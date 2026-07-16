@@ -10,12 +10,14 @@ import os
 os.environ["GRADIO_SSR_MODE"] = "False"
 
 import gradio as gr
+import spaces
 from app import app as fastapi_app
 
 # ---------------------------------------------------------------------------
 # A lightweight Gradio interface for uploading / previewing predictions.
 # HF Spaces needs a Gradio `demo` object to mount on the free tier.
 # ---------------------------------------------------------------------------
+@spaces.GPU
 def _predict_ui(file):
     """Minimal upload → call the same /api/predict logic."""
     if file is None:
