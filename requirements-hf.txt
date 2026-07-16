@@ -1,11 +1,13 @@
 # Inference-only requirements for Hugging Face Spaces deployment
-opencv-python-headless>=4.5.0
-numpy>=1.21.0
-Pillow>=8.0.0
-onnxruntime>=1.15.0
-fastapi>=0.100.0
-uvicorn[standard]>=0.23.0
-python-multipart>=0.0.6
-gradio>=4.20.0,<5
-httpx>=0.24.0
-huggingface_hub>=0.24.0,<0.26.0
+# Versions pinned EXACTLY to avoid dependency resolution conflicts
+opencv-python-headless==4.9.0.80
+numpy==1.26.4
+Pillow==10.3.0
+onnxruntime==1.17.3
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+python-multipart==0.0.9
+# Gradio 4.x (NOT 5.x) — 5.x forces huggingface_hub>=0.26.0 which removed HfFolder
+gradio==4.44.1
+httpx==0.27.0
+huggingface_hub==0.25.2
