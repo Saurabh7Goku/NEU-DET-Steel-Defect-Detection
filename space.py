@@ -17,27 +17,33 @@ from app import run_prediction, _ensure_model, _get_session
 
 # Ensure ONNX model is loaded at import time
 _ensure_model()
-_get_session()
+# _get_session()
 
 
 @spaces.GPU
-def predict_ui(file):
-    """Run inference and return overlay HTML + table rows."""
-    if file is None:
-        return None, [["—", 0.0]]
+def predict_ui(image):
 
-    img = Image.open(file).convert("RGB")
-    img_np = np.array(img)
+    _get_session()
 
-    result = run_prediction(img_np)
+    if image is None:
+        return (
+            "<p>Please upload an image.</p>",
+            []
+        )
+
+    result = run_prediction(np.array(image))
 
     overlay_html = (
         f'<img src="{result["overlay"]}" '
         f'style="max-width:100%;border-radius:12px"/>'
     )
-    table = [[p["class"], p["confidence"]] for p in result["predictions"]]
 
-    return overlay_html, table
+    # table = [
+    #     [p["class"], p["confidence"]]
+    #     for p in result["predictions"]
+    # ]
+
+    return overlay_html, result["predictions"]
 
 
 # ---------------------------------------------------------------------------
@@ -55,20 +61,18 @@ with gr.Blocks(title="NEU-DET Steel Defect Detection", theme=gr.themes.Soft()) a
 
     with gr.Row():
         with gr.Column(scale=1):
-            file_input = gr.File(
-                label="Upload Image",
-                file_types=[".jpg", ".jpeg", ".png"],
-            )
+            file_input = gr.Image(type="pil", label="Upload Image")
             predict_btn = gr.Button("Detect Defects", variant="primary")
 
         with gr.Column(scale=1):
             overlay_output = gr.HTML(label="Segmentation Overlay")
-            predictions_output = gr.Dataframe(
-                label="Predictions",
-                headers=["Class", "Confidence"],
-                datatype=["str", "number"],
-                row_count=6,
-            )
+            # predictions_output = gr.Dataframe(
+            #     label="Predictions",
+            #     headers=["Class", "Confidence"],
+            #     datatype=["str", "number"],
+            #     row_count=6,
+            # )
+            predictions_output = gr.JSON(label="Predictions")
 
     predict_btn.click(
         fn=predict_ui,
