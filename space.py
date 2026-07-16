@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-"""Entry point for Hugging Face Spaces (Gradio SDK).
+"""Entry point for Hugging Face Spaces.
 
-Gradio UI that calls the same shared inference function as the FastAPI backend.
-HF Spaces manages the server lifecycle — no demo.launch() or uvicorn needed.
+Mounts the Gradio UI onto the FastAPI app so both the Gradio demo
+and the /api/* routes (used by the Vercel frontend) are accessible.
 """
 
 import os
@@ -13,23 +13,16 @@ import spaces
 import numpy as np
 from PIL import Image
 
-from app import run_prediction, _ensure_model, _get_session
+from app import app as fastapi_app, run_prediction, _ensure_model, _get_session
 
-# Ensure ONNX model is loaded at import time
 _ensure_model()
-# _get_session()
+_get_session()
 
 
 @spaces.GPU
 def predict_ui(image):
-
-    _get_session()
-
     if image is None:
-        return (
-            "<p>Please upload an image.</p>",
-            []
-        )
+        return "<p>Please upload an image.</p>", []
 
     result = run_prediction(np.array(image))
 
@@ -37,18 +30,9 @@ def predict_ui(image):
         f'<img src="{result["overlay"]}" '
         f'style="max-width:100%;border-radius:12px"/>'
     )
-
-    # table = [
-    #     [p["class"], p["confidence"]]
-    #     for p in result["predictions"]
-    # ]
-
     return overlay_html, result["predictions"]
 
 
-# ---------------------------------------------------------------------------
-# Gradio Blocks UI
-# ---------------------------------------------------------------------------
 with gr.Blocks(title="NEU-DET Steel Defect Detection", theme=gr.themes.Soft()) as demo:
     gr.Markdown(
         """
@@ -57,8 +41,6 @@ with gr.Blocks(title="NEU-DET Steel Defect Detection", theme=gr.themes.Soft()) a
     """
     )
 
-    status = gr.Textbox(visible=False)
-
     with gr.Row():
         with gr.Column(scale=1):
             file_input = gr.Image(type="pil", label="Upload Image")
@@ -66,12 +48,6 @@ with gr.Blocks(title="NEU-DET Steel Defect Detection", theme=gr.themes.Soft()) a
 
         with gr.Column(scale=1):
             overlay_output = gr.HTML(label="Segmentation Overlay")
-            # predictions_output = gr.Dataframe(
-            #     label="Predictions",
-            #     headers=["Class", "Confidence"],
-            #     datatype=["str", "number"],
-            #     row_count=6,
-            # )
             predictions_output = gr.JSON(label="Predictions")
 
     predict_btn.click(
@@ -87,5 +63,8 @@ with gr.Blocks(title="NEU-DET Steel Defect Detection", theme=gr.themes.Soft()) a
     """
     )
 
-# HF Spaces mounts the Gradio app via the `demo` object at module level.
-# Do NOT call demo.launch() or uvicorn.run() here.
+app = gr.mount_gradio_app(fastapi_app, demo, path="/")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("space:app", host="0.0.0.0", port=7860)
