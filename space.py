@@ -9,7 +9,6 @@ import os
 os.environ["GRADIO_SSR_MODE"] = "False"
 
 import gradio as gr
-import spaces
 import numpy as np
 from PIL import Image
 
@@ -19,7 +18,6 @@ _ensure_model()
 _get_session()
 
 
-@spaces.GPU
 def predict_ui(image):
     if image is None:
         return "<p>Please upload an image.</p>", []
