@@ -6,6 +6,9 @@ Space stays warm on the free tier. All `/api/*` routes from `app.py`
 continue to work normally — the Vercel frontend talks to them directly.
 """
 
+import os
+os.environ["GRADIO_SSR_MODE"] = "False"
+
 import gradio as gr
 from app import app as fastapi_app
 
