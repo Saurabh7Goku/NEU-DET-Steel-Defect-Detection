@@ -33,8 +33,7 @@ Dataset: [NEU Surface Defect Database](http://faculty.neu.edu.cn/yunhyan/NEU_sur
 ├── app.py                          # FastAPI backend server
 ├── space.py                        # Gradio wrapper for Hugging Face Spaces
 ├── main.py                         # CLI entry point (train / evaluate / export)
-├── requirements.txt                # Full training dependencies
-├── requirements-hf.txt             # Inference-only deps for HF Spaces
+├── requirements.txt                # Python dependencies (training + inference)
 ├── Dockerfile                      # (optional — not used on HF free tier)
 │
 ├── frontend/                       # Next.js web application
