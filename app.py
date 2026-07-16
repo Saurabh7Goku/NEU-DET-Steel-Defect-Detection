@@ -96,7 +96,16 @@ def _get_session() -> ort.InferenceSession:
         _ensure_model()
         if not os.path.exists(ONNX_PATH):
             raise RuntimeError(f"ONNX model not found at {ONNX_PATH}")
-        _session = ort.InferenceSession(ONNX_PATH)
+        
+        providers = [
+            ("CUDAExecutionProvider", {"device_id": 0}),
+            "CPUExecutionProvider",
+        ]
+        try:
+            _session = ort.InferenceSession(ONNX_PATH, providers=providers)
+        except Exception as e:
+            print(f"[WARN] CUDA provider failed, falling back to CPU: {e}")
+            _session = ort.InferenceSession(ONNX_PATH, providers=["CPUExecutionProvider"])
     return _session
 
 
