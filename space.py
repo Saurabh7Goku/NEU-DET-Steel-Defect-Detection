@@ -104,4 +104,4 @@ with gr.Blocks(title="NEU-DET Steel Defect Detection", theme=gr.themes.Soft()) a
     )
 
 if __name__ == "__main__":
-    demo.launch(share=True)
+    demo.launch()
