@@ -5,12 +5,12 @@ import { fetchSamples, sampleUrl, predictImage } from "@/lib/api";
 import type { Prediction } from "@/lib/api";
 
 const CLASS_COLORS: Record<string, string> = {
-  crazing:       "#ef4444",
-  patches:       "#3b82f6",
-  inclusion:     "#10b981",
-  pitted_surface:"#f59e0b",
-  rolled_in_scale:"#8b5cf6",
-  scratches:     "#ec4899",
+  crazing: "#ef4444",
+  patches: "#3b82f6",
+  inclusion: "#10b981",
+  pitted_surface: "#f59e0b",
+  rolled_in_scale: "#8b5cf6",
+  scratches: "#ec4899",
 };
 
 export default function Demo() {
@@ -33,7 +33,10 @@ export default function Demo() {
       .then((s) => {
         setSamples(s);
       })
-      .catch(() => {});
+      .catch(() => {
+        // Samples may not be available when frontend runs standalone
+        console.warn("Failed to load sample images (API may not be running)");
+      });
     return () => clearTimeout(t);
   }, []);
 
@@ -113,19 +116,18 @@ export default function Demo() {
   return (
     <section
       id="demo"
-      className={`relative mx-auto max-w-6xl px-4 py-24 transition-all duration-1000 ${
-        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-      }`}
+      className={`relative mx-auto max-w-6xl px-4 py-16 sm:py-24 transition-all duration-1000 ${visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+        }`}
     >
       {/* ── Section Header ── */}
-      <div className="mb-10 text-center">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.3em] text-amber-500/80">
+      <div className="mb-8 sm:mb-10 text-center">
+        <p className="mb-2 text-[10px] sm:text-xs font-semibold uppercase tracking-[0.3em] text-amber-500/80">
           Live Prediction
         </p>
-        <h2 className="text-3xl font-bold text-white sm:text-4xl">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
           Try It <span className="text-amber-400">Out</span>
         </h2>
-        <p className="mt-3 text-sm text-slate-400">
+        <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-slate-400">
           Upload a steel surface image or pick a sample to classify
         </p>
       </div>
@@ -143,16 +145,14 @@ export default function Demo() {
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
             onClick={() => fileRef.current?.click()}
-            className={`relative flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-8 transition-all duration-300 ${
-              dragOver
-                ? "border-amber-400 bg-amber-500/10 shadow-[0_0_30px_rgba(245,158,11,0.15)]"
-                : "border-white/[0.08] bg-white/[0.02] hover:border-white/[0.15] hover:bg-white/[0.04]"
-            }`}
+            className={`relative flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-8 transition-all duration-300 ${dragOver
+              ? "border-amber-400 bg-amber-500/10 shadow-[0_0_30px_rgba(245,158,11,0.15)]"
+              : "border-white/[0.08] bg-white/[0.02] hover:border-white/[0.15] hover:bg-white/[0.04]"
+              }`}
           >
             <div
-              className={`flex h-12 w-12 items-center justify-center rounded-xl transition-colors ${
-                dragOver ? "bg-amber-500/20 text-amber-400" : "bg-white/[0.05] text-slate-500"
-              }`}
+              className={`flex h-12 w-12 items-center justify-center rounded-xl transition-colors ${dragOver ? "bg-amber-500/20 text-amber-400" : "bg-white/[0.05] text-slate-500"
+                }`}
             >
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 16V4m0 0L8 8m4-4l4 4" />
@@ -179,7 +179,7 @@ export default function Demo() {
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Sample Images
               </p>
-              <div className="grid grid-cols-6 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                 {allClasses.map((cls) =>
                   (samples[cls] || []).slice(0, 2).map((img, i) => {
                     const isSelected = selected === img;
@@ -190,11 +190,10 @@ export default function Demo() {
                           e.stopPropagation();
                           handleSampleClick(img);
                         }}
-                        className={`group relative aspect-square overflow-hidden rounded-lg border transition-all duration-200 ${
-                          isSelected
-                            ? "border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.3)]"
-                            : "border-white/[0.06] hover:border-white/[0.2]"
-                        }`}
+                        className={`group relative aspect-square overflow-hidden rounded-lg border transition-all duration-200 ${isSelected
+                          ? "border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.3)]"
+                          : "border-white/[0.06] hover:border-white/[0.2]"
+                          }`}
                         title={cls.replace(/_/g, " ")}
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -38,12 +38,16 @@
 
 html {
   scroll-behavior: smooth;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 ::selection {
@@ -56,13 +60,16 @@ body {
 ::-webkit-scrollbar {
   width: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
   background: rgba(148, 163, 184, 0.15);
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.25);
 }
@@ -74,6 +81,7 @@ body {
     opacity: 0;
     transform: translateY(32px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -81,8 +89,13 @@ body {
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slide-in-left {
@@ -90,6 +103,7 @@ body {
     opacity: 0;
     transform: translateX(-24px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -101,6 +115,7 @@ body {
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -108,32 +123,59 @@ body {
 }
 
 @keyframes glow-pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
 }
 
 @keyframes mesh-shift {
-  0%, 100% {
+
+  0%,
+  100% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
 }
 
 @keyframes bar-fill {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(var(--bar-scale)); }
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(var(--bar-scale));
+  }
 }
 
 .animate-fade-in-up {
@@ -153,36 +195,75 @@ body {
 }
 
 /* Stagger delays for children */
-.stagger-1 { animation-delay: 0.05s; }
-.stagger-2 { animation-delay: 0.1s; }
-.stagger-3 { animation-delay: 0.15s; }
-.stagger-4 { animation-delay: 0.2s; }
-.stagger-5 { animation-delay: 0.25s; }
-.stagger-6 { animation-delay: 0.3s; }
-.stagger-7 { animation-delay: 0.35s; }
-.stagger-8 { animation-delay: 0.4s; }
+.stagger-1 {
+  animation-delay: 0.05s;
+}
+
+.stagger-2 {
+  animation-delay: 0.1s;
+}
+
+.stagger-3 {
+  animation-delay: 0.15s;
+}
+
+.stagger-4 {
+  animation-delay: 0.2s;
+}
+
+.stagger-5 {
+  animation-delay: 0.25s;
+}
+
+.stagger-6 {
+  animation-delay: 0.3s;
+}
+
+.stagger-7 {
+  animation-delay: 0.35s;
+}
+
+.stagger-8 {
+  animation-delay: 0.4s;
+}
 
 /* Scroll reveal — elements start invisible */
 .reveal {
   opacity: 0;
   transform: translateY(24px);
   transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 .reveal.visible {
   opacity: 1;
   transform: translateY(0);
 }
-.reveal-delay-1 { transition-delay: 0.08s; }
-.reveal-delay-2 { transition-delay: 0.16s; }
-.reveal-delay-3 { transition-delay: 0.24s; }
-.reveal-delay-4 { transition-delay: 0.32s; }
-.reveal-delay-5 { transition-delay: 0.4s; }
+
+.reveal-delay-1 {
+  transition-delay: 0.08s;
+}
+
+.reveal-delay-2 {
+  transition-delay: 0.16s;
+}
+
+.reveal-delay-3 {
+  transition-delay: 0.24s;
+}
+
+.reveal-delay-4 {
+  transition-delay: 0.32s;
+}
+
+.reveal-delay-5 {
+  transition-delay: 0.4s;
+}
 
 /* ── Gradient Mesh Background ─────────────────────────────────── */
 
 .mesh-bg {
-  background: 
+  background:
     radial-gradient(ellipse 80% 60% at 20% 40%, rgba(59, 130, 246, 0.12) 0%, transparent 60%),
     radial-gradient(ellipse 60% 50% at 80% 30%, rgba(168, 85, 247, 0.08) 0%, transparent 50%),
     radial-gradient(ellipse 70% 40% at 50% 80%, rgba(245, 158, 11, 0.06) 0%, transparent 50%),
@@ -212,10 +293,12 @@ body {
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
 }
+
 .drag-zone:hover {
   border-color: rgba(245, 158, 11, 0.3);
   background: rgba(245, 158, 11, 0.03);
 }
+
 .drag-zone.drag-over {
   border-color: var(--accent);
   background: rgba(245, 158, 11, 0.06);
@@ -233,17 +316,17 @@ body {
 
 .glow-amber {
   box-shadow: 0 0 20px rgba(245, 158, 11, 0.15),
-              0 0 60px rgba(245, 158, 11, 0.05);
+    0 0 60px rgba(245, 158, 11, 0.05);
 }
 
 .glow-blue {
   box-shadow: 0 0 20px rgba(59, 130, 246, 0.15),
-              0 0 60px rgba(59, 130, 246, 0.05);
+    0 0 60px rgba(59, 130, 246, 0.05);
 }
 
 .glow-card:hover {
   box-shadow: 0 0 30px var(--glow-color, rgba(245, 158, 11, 0.1)),
-              0 4px 20px rgba(0, 0, 0, 0.3);
+    0 4px 20px rgba(0, 0, 0, 0.3);
   border-color: var(--glow-border, rgba(245, 158, 11, 0.2));
 }
 
@@ -275,12 +358,10 @@ body {
 /* ── Shimmer Loading ──────────────────────────────────────────── */
 
 .shimmer {
-  background: linear-gradient(
-    90deg,
-    rgba(148, 163, 184, 0.05) 25%,
-    rgba(148, 163, 184, 0.1) 50%,
-    rgba(148, 163, 184, 0.05) 75%
-  );
+  background: linear-gradient(90deg,
+      rgba(148, 163, 184, 0.05) 25%,
+      rgba(148, 163, 184, 0.1) 50%,
+      rgba(148, 163, 184, 0.05) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
@@ -288,9 +369,15 @@ body {
 /* ── Loading Spinner ──────────────────────────────────────────── */
 
 @keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
+
 .animate-spin-slow {
   animation: spin-slow 2s linear infinite;
 }

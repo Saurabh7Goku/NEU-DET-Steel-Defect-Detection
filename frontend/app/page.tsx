@@ -10,9 +10,9 @@ export default function Home() {
       <DefectCatalog />
 
       {/* Footer */}
-      <footer className="border-t border-white/[0.04] py-12">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
+      <footer className="border-t border-white/[0.04] py-8 sm:py-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center justify-between gap-4 sm:gap-6 sm:flex-row">
             <div className="flex items-center gap-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-500">
                 <svg
@@ -34,15 +34,15 @@ export default function Home() {
               </span>
             </div>
 
-            <div className="flex items-center gap-6 text-xs text-slate-600">
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-[10px] sm:text-xs text-slate-600">
               <span>FPN + EfficientNet-B3</span>
-              <span className="h-3 w-px bg-white/[0.06]" />
+              <span className="hidden sm:inline h-3 w-px bg-white/[0.06]" />
               <span>ONNX Runtime</span>
-              <span className="h-3 w-px bg-white/[0.06]" />
+              <span className="hidden sm:inline h-3 w-px bg-white/[0.06]" />
               <span>Next.js + FastAPI</span>
             </div>
 
-            <p className="text-xs text-slate-600">
+            <p className="text-[10px] sm:text-xs text-slate-600">
               &copy; {new Date().getFullYear()} Steel Defect Detection
             </p>
           </div>

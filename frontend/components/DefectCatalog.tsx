@@ -105,13 +105,13 @@ export default function DefectCatalog() {
   const { ref, visible } = useInView(0.05);
 
   return (
-    <section id="catalog" ref={ref} className="relative py-24 sm:py-32">
+    <section id="catalog" ref={ref} className="relative py-16 sm:py-24 lg:py-32">
       {/* Subtle background */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[600px] w-[900px] rounded-full bg-blue-500/[0.015] blur-[120px]" />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <div
           className={`reveal mx-auto max-w-2xl text-center ${visible ? "visible" : ""}`}
@@ -119,25 +119,23 @@ export default function DefectCatalog() {
           <div className="mb-4 text-xs font-bold tracking-[0.2em] uppercase text-blue-500/80">
             NEU-DET Dataset
           </div>
-          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-5xl">
+          <h2 className="text-2xl sm:text-3xl lg:text-5xl font-bold tracking-tight text-white">
             Defect Catalog
           </h2>
-          <p className="mt-5 text-lg leading-relaxed text-slate-400">
+          <p className="mt-3 sm:mt-5 text-sm sm:text-lg leading-relaxed text-slate-400">
             The NEU-DET benchmark covers six categories of surface defects
             commonly found in hot-rolled steel strips.
           </p>
         </div>
 
         {/* Cards grid */}
-        <div className="mx-auto mt-16 grid max-w-5xl gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mx-auto mt-12 sm:mt-16 grid max-w-5xl gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {DEFECTS.map((defect, i) => (
             <div
               key={defect.id}
-              className={`reveal reveal-delay-${(i % 5) + 1} ${visible ? "visible" : ""} group relative overflow-hidden rounded-2xl border transition-all duration-500 ${
-                defect.border
-              } ${defect.hoverBorder} bg-gradient-to-br ${
-                defect.gradient
-              } hover:-translate-y-1`}
+              className={`reveal reveal-delay-${(i % 5) + 1} ${visible ? "visible" : ""} group relative overflow-hidden rounded-2xl border transition-all duration-500 ${defect.border
+                } ${defect.hoverBorder} bg-gradient-to-br ${defect.gradient
+                } hover:-translate-y-1`}
               style={
                 {
                   "--glow-color": defect.glowColor,
@@ -156,9 +154,8 @@ export default function DefectCatalog() {
                 <div className="mb-4 flex items-start justify-between">
                   <span className="text-3xl">{defect.icon}</span>
                   <span
-                    className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase ${
-                      SEVERITY_STYLES[defect.severity]
-                    }`}
+                    className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold tracking-wider uppercase ${SEVERITY_STYLES[defect.severity]
+                      }`}
                   >
                     {defect.severity}
                   </span>
